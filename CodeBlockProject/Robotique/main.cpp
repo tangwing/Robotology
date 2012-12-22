@@ -1,7 +1,7 @@
 #include "matrice.h"
 #include "robotique.h"
 #include <stdio.h>
-#define PI 3.14159
+
 
 void testMGD();
 void testIAA();
@@ -42,11 +42,11 @@ printmatrix(m12);
 
 void testIAA()
 {
-    double thita[3][2] = {1,0,   1,0,   1,0};
+    double thita[3];//[2] = {1,0,   1,0,   1,0};
     double d[3]={2,0,0};
-    double alpha[3][2] = {0,PI/2,   0,0,   0,0};
+    double alpha[3] = {PI/2,   0,   0};
     double a[3]={0,1,1};
-    double range[3][2] = {0,2*PI,   0,2*PI,   0,2*PI};
+    double range[3][2] = {0,PI,   -PI/2,PI/2,   -PI/2,PI/2};
     double targetPoint[3] = {0,2,2};
 
     double* x = IAA( thita,  d,  alpha,

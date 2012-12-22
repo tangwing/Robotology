@@ -6,17 +6,18 @@
 	<iostream>
 	<iomanip>
 
-1356191405 source:d:\projects\robotique\codeblockproject\robotique\robotique.cpp
+1356196223 source:d:\projects\robotique\codeblockproject\robotique\robotique.cpp
 	"robotique.h"
 	"matrice.h"
 	<cstring>
 	<cstdlib>
 	<stdio.h>
+	<time.h>
 
-1355908317 d:\projects\robotique\codeblockproject\robotique\robotique.h
+1356194682 d:\projects\robotique\codeblockproject\robotique\robotique.h
 	<cmath>
 
-1356191431 source:d:\projects\robotique\codeblockproject\robotique\main.cpp
+1356196382 source:d:\projects\robotique\codeblockproject\robotique\main.cpp
 	"matrice.h"
 	"robotique.h"
 	<stdio.h>

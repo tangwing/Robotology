@@ -3,8 +3,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <stdio.h>
+#include <time.h>
 using namespace std;
-#define BORNE 1
+#define BORNE_DIS 0.01
 void denavit(double thita, double d, double alpha, double a, double res[4][4])// les matrices entaires associées ?ces instances des quadruplets.
 {
 	res[0][0]=jd2(cos(thita)); res[0][1]=jd2(-sin(thita)*cos(alpha)); res[0][2]=jd2(sin(thita)*sin(alpha));  res[0][3]=jd2(a*cos(thita));
@@ -41,7 +42,7 @@ double distance(double point1[3], double point2[3])
 }
 
 /*tdaa -> tdaa[n][4]*/
-void getCurrentPoint(double *tdaa, int n, double *point)
+void getCurrentPoint(double x[], double d[], double alpha[], double a[], int n, double *point)
 {
     double m[4][4];
     double m1[4][4]={0};
@@ -51,18 +52,18 @@ void getCurrentPoint(double *tdaa, int n, double *point)
     m1[1][1]=1;
     m1[2][2]=1;
     m1[3][3]=1;
-    denavit(tdaa[0], tdaa[1], tdaa[2], tdaa[3], m1);
-    printmatrix(m1);
+    denavit(x[0], d[0], alpha[0], a[0], m1);
+    //printmatrix(m1);
     for(int i=1; i<n; i++)
     {
-        denavit(tdaa[i*4+0], tdaa[i*4+1], tdaa[i*4+2], tdaa[i*4+3], m2);
-        printmatrix(m2);
+        denavit(x[i], d[i], alpha[i], a[i], m2);
+        //printmatrix(m2);
     	produit(m1, m2, m);
-    	printmatrix(m);
+    	//printmatrix(m);
     	//m->m1
     	memcpy(m1,m,16*sizeof(double));
-    	printmatrix(m1);
-    	printf("\n");
+    	//printmatrix(m1);
+    	//printf("\n");
         //copy(m,m1);
     }
 	point[0] = m[0][3];
@@ -86,57 +87,67 @@ void setTDAAFromX(double thita[][2], double d[], double alpha[][2], double a[],d
   x is the angle to calculate.
   range[i] means the range of angle Xi.
 */
-double* IAA(double thita[][2], double d[], double alpha[][2], double a[], int n, double range[][2], double targetPoint[3])
+double* IAA(double x[], double d[], double alpha[], double a[], int n, double range[][2], double targetPoint[3])
 {
     int i;
     bool flag = true;
     //The angles to calculate
-    double *x = new double[n];
+    //double *x = new double[n];
     double lastX;
     //A table of increment rate
     //if(delta(epsilon) = 0) then incrementRate/=2
     double *incRate = new double[n];
+    double *BORNE = new double[n];
     //The coordinate of the current point
     double currentPoint[3];
     //The distance between the current point and the target point
     double lastDist, newDist;
-    double **tdaa = new double*[n];
+    //double **tdaa = new double*[n];
     //double d[][4] = new double*[n];
     //initialisation
+    srand ( time(NULL) );
     for(i=0; i<n; i++)
     {
+
         x[i] = range[i][0]+rand()%((int)(range[i][1]-range[i][0]));
         incRate[i]=0.5;
-        tdaa[i] = new double [4];
+        BORNE[i]=0.01/((range[i][1] - range[i][0])*180/PI);//precision:0.1°
+        //tdaa[i] = new double [4];
     }
 
 
-    setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
-    getCurrentPoint((double*)tdaa,n,currentPoint);
+    //setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
+    getCurrentPoint(x, d, alpha, a,n,currentPoint);
     lastDist = distance(currentPoint, targetPoint);
     //while(flag)
     int j=0;
-    while(j++<2)
+    while(flag)
     {
+        flag = false;
         for(i=0; i<n; i++)
         {
             printf("Thita %d: x_begin=%f; dis_old=%f; incRate=%f\n",i,x[i],lastDist,incRate[i]);
             lastX = x[i];
             //inc
             x[i]+=(range[i][1]-range[i][0])*incRate[i];
+            if(x[i] > range[i][1])
+                x[i]=range[i][1];
             //printf("\n",x[i]);
             //calculate new distance
-            setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
-            getCurrentPoint((double*)tdaa,n,currentPoint);
+            //setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
+            //getCurrentPoint((double*)tdaa,n,currentPoint);
+            getCurrentPoint(x, d, alpha, a,n,currentPoint);
             newDist = distance(currentPoint, targetPoint);
             printf("newX=%f,newpoint:(%f;%f;%f);dis=%f\n",x[i],currentPoint[0],currentPoint[1],currentPoint[2],newDist);
             if(newDist>=lastDist)
             {
                 //search another possibility
                 x[i]=x[i]-2*(range[i][1]-range[i][0])*incRate[i];
+                if(x[i] < range[i][0])
+                    x[i]=range[i][0];
                 //calculate new distance
-                setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
-                getCurrentPoint((double*)tdaa,n,currentPoint);
+                //setTDAAFromX(thita, d, alpha, a, x, tdaa, n);
+                getCurrentPoint(x, d, alpha, a,n,currentPoint);
                 newDist = distance(currentPoint, targetPoint);
                 if(newDist>=lastDist)
                 {
@@ -144,31 +155,41 @@ double* IAA(double thita[][2], double d[], double alpha[][2], double a[], int n,
                     x[i]=lastX;
                     //Adjust increment rate
                     incRate[i]/=2;
+                    if(incRate[i]>BORNE[i])
+                        flag = true;
                     newDist = lastDist;
                 }
                 else
                 {
                     //Keep the new value
                     lastDist=newDist;
+                    flag = true;
+                    //test
+                    incRate[i]*=2;
                 }
             }else
             {
                 //Keep the new value
                 lastDist=newDist;
+                flag=true;
+                //test
+                incRate[i]*=2;
             }
             printf("Thita %d:   x_end=%f; dis_new=%f; incRate=%f\n\n",i,x[i],newDist,incRate[i]);
-            if(newDist<BORNE)
+            if(newDist<BORNE_DIS)
                 flag=false;
+            else if(incRate[i]>0.00001)
+                flag = true;
         }
     }
 
     //finalisation
     delete []incRate;
 
-    for(i=0; i<n; i++)
-    {
-        delete [] tdaa[i];
-    }
-    delete [] tdaa;
+//    for(i=0; i<n; i++)
+//    {
+//        delete [] tdaa[i];
+//    }
+//    delete [] tdaa;
     return x;
 }
