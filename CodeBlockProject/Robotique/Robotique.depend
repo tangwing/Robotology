@@ -1,0 +1,23 @@
+# depslib dependency file v1.0
+1356192506 source:d:\projects\robotique\codeblockproject\robotique\matrice.cpp
+	"matrice.h"
+
+1355908411 d:\projects\robotique\codeblockproject\robotique\matrice.h
+	<iostream>
+	<iomanip>
+
+1356191405 source:d:\projects\robotique\codeblockproject\robotique\robotique.cpp
+	"robotique.h"
+	"matrice.h"
+	<cstring>
+	<cstdlib>
+	<stdio.h>
+
+1355908317 d:\projects\robotique\codeblockproject\robotique\robotique.h
+	<cmath>
+
+1356191431 source:d:\projects\robotique\codeblockproject\robotique\main.cpp
+	"matrice.h"
+	"robotique.h"
+	<stdio.h>
+

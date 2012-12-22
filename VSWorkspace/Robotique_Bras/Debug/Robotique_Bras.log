@@ -1,0 +1,23 @@
+﻿Build started 18/12/2012 16:23:35.
+     1>Project "C:\Users\shang\Desktop\Robotique\Robotique_Bras\Robotique_Bras.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Robotique_Bras.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Debug\Robotique_Bras.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\Robotique_Bras.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp matrice.cpp robotique.cpp
+         robotique.cpp
+     1>c:\users\shang\desktop\robotique\robotique_bras\robotique.cpp(83): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\shang\desktop\robotique\robotique_bras\robotique.cpp(90): error C2660: 'getCurrentPoint' : function does not take 0 arguments
+         matrice.cpp
+         main.cpp
+     1>c:\users\shang\desktop\robotique\robotique_bras\main.cpp(11): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\shang\desktop\robotique\robotique_bras\main.cpp(11): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\shang\desktop\robotique\robotique_bras\main.cpp(14): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\shang\desktop\robotique\robotique_bras\main.cpp(14): warning C4305: 'argument' : truncation from 'double' to 'float'
+         Generating Code...
+     1>Done Building Project "C:\Users\shang\Desktop\Robotique\Robotique_Bras\Robotique_Bras.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:03.04
