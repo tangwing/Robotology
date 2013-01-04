@@ -4,33 +4,28 @@
 #include <cstdlib>
 #include <stdio.h>
 
+//La borne de distance qui nous permet de 
+//prendre 2 points pour un seul.
 #define BORNE_DIS 0.0001
-Robotique::Robotique()
-{
-}
 
-
-Robotique::~Robotique()
-{
-}
-
-double jd2(double dsrc)
+inline double jd2(double dsrc)
 {
 	return dsrc;
 	//return ((int)((dsrc)*1000))/1000.0;
 }
 
+/**Retourner la matrice denavit à partir un quadruplet*/
 Matrice Robotique::ROBdenavit(Quadruplet QUAfour)
 {
 	Matrice MATtmp;
-	MATtmp[0][0]=jd2(cos(QUAfour.thita)); MATtmp[0][1]=jd2(-sin(QUAfour.thita)*cos(QUAfour.alpha)); MATtmp[0][2]=jd2(sin(QUAfour.thita)*sin(QUAfour.alpha));  MATtmp[0][3]=jd2(QUAfour.a*cos(QUAfour.thita));
-	MATtmp[1][0]=jd2(sin(QUAfour.thita)); MATtmp[1][1]=jd2(cos(QUAfour.thita)*cos(QUAfour.alpha));  MATtmp[1][2]=jd2(-cos(QUAfour.thita)*sin(QUAfour.alpha)); MATtmp[1][3]=jd2(QUAfour.a*sin(QUAfour.thita));
+	MATtmp[0][0]=jd2(cos(QUAfour.theta)); MATtmp[0][1]=jd2(-sin(QUAfour.theta)*cos(QUAfour.alpha)); MATtmp[0][2]=jd2(sin(QUAfour.theta)*sin(QUAfour.alpha));  MATtmp[0][3]=jd2(QUAfour.a*cos(QUAfour.theta));
+	MATtmp[1][0]=jd2(sin(QUAfour.theta)); MATtmp[1][1]=jd2(cos(QUAfour.theta)*cos(QUAfour.alpha));  MATtmp[1][2]=jd2(-cos(QUAfour.theta)*sin(QUAfour.alpha)); MATtmp[1][3]=jd2(QUAfour.a*sin(QUAfour.theta));
 	MATtmp[2][0]=0;			   MATtmp[2][1]=jd2(sin(QUAfour.alpha));			  MATtmp[2][2]=jd2(cos(QUAfour.alpha));			 MATtmp[2][3]=jd2(QUAfour.d);
 	MATtmp[3][0]=0;			   MATtmp[3][1]=0;						      MATtmp[3][2]=0;							 MATtmp[3][3]=1;
 	return MATtmp;
 }
 
-
+/**Application du modèle numérique direct*/
 Matrice Robotique::ROBcalculMGD(Quadruplet QUAn[], int iCount)
 {
 	int iBoucle;
@@ -44,6 +39,9 @@ Matrice Robotique::ROBcalculMGD(Quadruplet QUAn[], int iCount)
 	return MATres;
 }
 
+/**Retirer les coordonnées du point de l'organe terminal à partir de
+    la matrice obtenue du modèle numétrique direct.   
+*/
 Point Robotique::ROBgetPfromM(Matrice & m)
 {
 	Point p;
@@ -61,26 +59,30 @@ double distance(Point POIsrc, Point POIdest)
         (POIsrc.dy-POIdest.dy)*(POIsrc.dy-POIdest.dy)+
 		(POIsrc.dz-POIdest.dz)*(POIsrc.dz-POIdest.dz);
     double dist = sqrt(tmp);
-
-//    for(int i=0; i<3; i++)
-//    {
-//        printf("(%f,%f,%f),(%f,%f,%f),tmp=%f;dist=%f.\n",point1[0],point1[1],point1[2],
-//               point2[0],point2[1],point2[2],tmp, dist);
-//    }
     return dist;
 }
 
+/**L'algorithme qui vérifie si un point est atteignable. 
+*@param QUAn Un tableau de quadruplet qui représente la configuration du robot.
+*            Les valeurs QUAn[i].theta sont à chercher, dons les valeurs initiales
+*            sont ignorés.
+*@param iCount Le nombre de quadruplet dans le tableau QUAn
+*@param POItarget Le point cible.
+*@result false Si le point cible n'est pas atteignable
+*        true  Si le point cible est atteignable, les valeurs articulaires
+*              sont affecté à QUAn[i].theta.
+*/
 bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 {
 	int i;
     bool flag = true;
-    double lastX;//The thita of the last time
+    double lastX;//The theta of the last time
     
 	//A table of increment rate
     double *incRate = new double[n];
     
 	//stop condition
-	double *BORNE = new double[n];
+	double *BORNE_RATE = new double[n];
     
 	//The coordinate of the current point that we can reach
     Point POIcurrent;
@@ -91,31 +93,38 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 	//Initialisation
     for(i=0; i<n; i++)
     {
-		QUAconfig[i].QUAset_random_thita();
+		QUAconfig[i].QUAset_random_theta();
         incRate[i]=0.15;//cf the article of Abdelhak MOUSSAOUI
-		BORNE[i]=0.000001/((QUAconfig[i].maxThita - QUAconfig[i].minThita)*180/PI);//precision:0.00...1°
+        //Stop condition: If the value of IncrementRate is less
+        //than this threshold, and the values of theta cannot be
+        //improved, then the function return false, which means that
+        //the target point is not reachable.
+		BORNE_RATE[i]=0.0001/((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);//precision:0.00...1°
     }
 
 	POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
     lastDist = distance(POIcurrent, POItarget);
 
-    int j=0;
+    int j=0, times = 0;
     while(flag)
     {
+        printf("Itération %d\t-------------------------------------------------\n", times++);
         flag = false;
-		//for each value of thita
+		//for each value of theta
         for(i=0; i<n; i++)
         {
-			printf("Thita %d: thita_begin=%f; dis_old=%f; incRate=%f\n",i+1,QUAconfig[i].thita,lastDist,incRate[i]);
-            lastX = QUAconfig[i].thita;
+			printf("Theta %d, initial: theta=%f; dis=%f; incRate=%f; goalPoint=(%f,%f,%f)\n",
+                i+1,QUAconfig[i].theta,lastDist,incRate[i],
+                POItarget.dx, POItarget.dy, POItarget.dz);
+            lastX = QUAconfig[i].theta;
             //inc
-			QUAconfig[i].thita+=(QUAconfig[i].maxThita-QUAconfig[i].minThita)*incRate[i];
-            if(QUAconfig[i].thita > QUAconfig[i].maxThita)
-                QUAconfig[i].thita = QUAconfig[i].maxThita;
+			QUAconfig[i].theta+=(QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+            if(QUAconfig[i].theta > QUAconfig[i].maxTheta)
+                QUAconfig[i].theta = QUAconfig[i].maxTheta;
 
             POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
 			newDist = distance(POIcurrent, POItarget);
-            printf("Thita %d:       newX=%f; newpoint:(%f;%f;%f); dis=%f\n", i+1, QUAconfig[i].thita,POIcurrent.dx,POIcurrent.dy,POIcurrent.dz,newDist);
+            //printf("Theta %d:       newX=%f; newpoint:(%f;%f;%f); dis=%f\n", i+1, QUAconfig[i].theta,POIcurrent.dx,POIcurrent.dy,POIcurrent.dz,newDist);
             
 			if (newDist < lastDist)
             {//We get a better value
@@ -127,9 +136,9 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 			else
             {
                 //search another possibility
-				QUAconfig[i].thita = lastX - (QUAconfig[i].maxThita-QUAconfig[i].minThita)*incRate[i];
-                if(QUAconfig[i].thita < QUAconfig[i].minThita)
-                    QUAconfig[i].thita=QUAconfig[i].minThita;
+				QUAconfig[i].theta = lastX - (QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+                if(QUAconfig[i].theta < QUAconfig[i].minTheta)
+                    QUAconfig[i].theta=QUAconfig[i].minTheta;
                 //calculate new distance
                 POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
 				newDist = distance(POIcurrent, POItarget);
@@ -143,26 +152,66 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 				else
                 {
                     //Keep the original value
-                    QUAconfig[i].thita=lastX;
+                    QUAconfig[i].theta=lastX;
                     //Adjust increment rate
                     incRate[i]/=2;
-                    if(incRate[i]>BORNE[i])
+                    if(incRate[i]>BORNE_RATE[i])
                        flag = true;
                     newDist = lastDist;
                 }
                 
             }
-            printf("Thita %d:   x_end=%f; dis_new=%f; incRate=%f\n\n",i+1,QUAconfig[i].thita,newDist,incRate[i]);
+            printf("Theta %d,   final: theta=%f; dis=%f; incRate=%f; currPoint=(%f,%f,%f)\n\n",
+                i+1,QUAconfig[i].theta,newDist,incRate[i], 
+                POIcurrent.dx, POIcurrent.dy, POIcurrent.dz);
 			if(newDist<BORNE_DIS)
 			{
 				delete []incRate;
                 return true;
 			}
-            //else if(incRate[i]>0.00001)
-              //  flag = true;
         }
     }
 
+    if(true == testLocalMinimum(QUAconfig, n))
+    {
+        printf("We've probably encountered a \"Local minimum\" situation. Try again.\n");
+    }
 	delete []incRate;
+    return false;
+}
+
+/**Test whether the algorithm IAA
+*falls into the "local minimum" situation. This situation 
+*often appears when we have limites for the articulars variables.
+*/
+bool Robotique::testLocalMinimum(Quadruplet* QUAconfig, int n)
+{
+    
+    int i;
+    for(i=0 ; i<n; i++)
+    {
+        if(QUAconfig[i].theta == QUAconfig[i].maxTheta ||
+            QUAconfig[i].theta == QUAconfig[i].minTheta)
+            return true;
+    }
+    //Point POIbegin(0,0,0);
+    //Point POIend;
+    //double dTmp;
+    //int i;
+    //for(i=1 ; i<n; i++)
+    //{
+    //    POIend = ROBgetPfromM(ROBcalculMGD(QUAconfig, i));
+		
+    //    //test whether the 3 points: POIbegin, POIcurrent, POIend, 
+    //    //are in the same line.
+    //    dTmp = (POIend.dx - POIbegin.dx)/(POIbegin.dx - POIcurrent.dx);
+    //    if( dTmp == (POIend.dy - POIbegin.dy)/(POIbegin.dy - POIcurrent.dy) &&
+    //        dTmp == (POIend.dz - POIbegin.dz)/(POIbegin.dz - POIcurrent.dz))
+    //        return true;
+    //    else
+    //    {
+    //        POIbegin = POIend;
+    //    }
+    //}
     return false;
 }

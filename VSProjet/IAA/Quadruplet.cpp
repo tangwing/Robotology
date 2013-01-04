@@ -1,6 +1,6 @@
 #include "Quadruplet.h"
 
-void Quadruplet::QUAset_random_thita()
+void Quadruplet::QUAset_random_theta()
 {
-	thita = minThita+rand()%((int)(maxThita - minThita));
+	theta = minTheta+rand()%((int)(maxTheta - minTheta));
 }

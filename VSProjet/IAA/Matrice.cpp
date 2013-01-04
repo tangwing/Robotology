@@ -3,6 +3,7 @@
 #include<iomanip>
 using namespace std;
 
+/**Initialiser la matrice avec 0.*/
 Matrice::Matrice()
 {
 	int iBouclei, iBouclej;
@@ -15,11 +16,7 @@ Matrice::Matrice()
 	}
 }
 
-
-Matrice::~Matrice()
-{
-}
-
+/**Définir la produit entre 2 matrices*/
 Matrice & Matrice::operator*(Matrice & m2)
 {
 	Matrice m;

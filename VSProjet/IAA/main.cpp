@@ -3,21 +3,15 @@
 #include "Robotique.h"
 #include <iostream>
 using namespace std;
+
+void printResIAA(Quadruplet* pQUAconfig, int n, bool res);
 void testMGD();
 void testIAA();
 
 int main()
 {
     //testMGD();
-//    double a = sin(PI/2);
-//    double b = a*a;
-//    int c = (int)(b*100);
-//    printf("c=%f,%f\n",c/100.0,jd2(b));
-    //printf("sin,%f",sin(1));
     testIAA();
-
-//    double d = 0.009834465645234565;
-//    printf("%f,%f\n",d, (int)(d*1000)/1000.0);
 	return 0;
 }
 
@@ -32,24 +26,44 @@ void testMGD()
 	m.MATprint();
 }
 
+
 void testIAA()
 {
-	Quadruplet pQUAconfig[4];
-	pQUAconfig[0] = Quadruplet(PI/2, 2, PI/2, 0,     0, PI);
-    pQUAconfig[1] = Quadruplet(0,    0, 0,    1, -PI/2, PI/2);
-	pQUAconfig[2] = Quadruplet(0,    0, 0,    1, -PI/2, PI/2);
-	pQUAconfig[3] = Quadruplet(0,    0, 0,    1, -PI/2, PI/2);
-	Point POItarget(0,0,1.5);
+    //La configuration 5R. Le dernier organe articulaire n'intervient pas
+	Quadruplet pQUAconfig1[4];
+	pQUAconfig1[0] = Quadruplet(PI/2, 2, PI/2, 0,     0, PI);
+    pQUAconfig1[1] = Quadruplet(0,    0, 0,    1, -PI/2, PI/2);
+	pQUAconfig1[2] = Quadruplet(0,    0, 0,    1, 0, PI/2);
+	pQUAconfig1[3] = Quadruplet(0,    0, 0,    1, 0, PI/2);
+	Point POItarget1(0,0,3);
 
-	bool res = Robotique::IAA( pQUAconfig, 4, POItarget);
+    /**A cause des limites on a imposés aux variables articulaires,
+    *l'algorithme peut rencontrer des minimas locaux. Et on constate que
+    *les minimas locaux apparaissent quand l'organe terminal est sur la
+    *chaîne articulaire.
+    */
+    bool res = Robotique::IAA( pQUAconfig1, 4, POItarget1);
+    printResIAA(pQUAconfig1, 4, res);    
 
-	if( res == true)
+    ////La configuration "croissant"
+    //Quadruplet pQUAconfig2[2];
+    //pQUAconfig2[0] = Quadruplet(0, 0, 0, 1,    -PI/3, PI/3);
+    //pQUAconfig2[1] = Quadruplet(0, 0, 0, 0.75, -2*PI/3, PI/2);
+    //Point POItarget2(1,0,0);
+    //bool res = Robotique::IAA( pQUAconfig2, 2, POItarget2);
+    //printResIAA(pQUAconfig2, 2, res);
+}
+
+
+void printResIAA(Quadruplet* pQUAconfig, int n, bool res)
+{
+    if( res == true)
 	{
-		cout<<"Final thitas:"<<endl;
-		for(int i=0; i<4; i++)
+		cout<<"Final theta:"<<endl;
+		for(int i=0; i<n; i++)
 		{
-			printf("%f\n",pQUAconfig[i].thita);
+			printf("%f (%f degree)\n",pQUAconfig[i].theta, pQUAconfig[i].theta*180/PI);
 		}
 	}else
-		printf("The point is not accessable.\n");
+		printf("The point is not reachable.\n");
 }

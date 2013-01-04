@@ -1,87 +1,40 @@
-\section{Introduction}
-L'Interface AndroPOD sert d'un port série pour les téléphones ou les tablettes Android. Il fonctionne avec l'appareil Android non modifié. Contrairement à toutes les autres solutions similaires sur le marché, l'interface AndroPOD permet les développeurs pour déboguer l'application de téléphone lorsque le téléphone est connecté à l'interface AndroPOD. Donc c'est un outil qui peut beaucoup faciliter le développement des applications Android.
+\section{Complément de l'algorithme}
+La description de l'algorithme IAA qu'on a pu trouver n'est pas précise. Pour implémenter cet algorithme, il nous reste du travail à faire pour préciser tout l'algorithme. Le plus important est de fixer la condition d'arrêt de cet algorithme.
 
 
-Deux acticles\footnote{\url{http://www.elektor.fr/magazines/2012/fevrier/andropod-(1).2057762.lynkx}} \footnote{\url{http://www.elektor.fr/magazines/2012/mars/andropod-(2).2085663.lynkx}} provenant du magazine \textit{Elector} introduisent en détail la fonctionnalité de la carte avec un exemple réalisé. La carte était aussi commandée sur ce site.
-
-
-L'interface AndroPOD est conçue pour être intégré dans votre propre projet. Nous pouvons l'utiliser dans plusieurs situations, par exemple pour les robots, les gadgets ou tous autres projets qu'on peut penser. Avec l'interface AndroPOD, on renforce son projet avec les fonctionnalités WIFI, 3G, 4G, Bluetooth, GPS etc. Si on a besoin un grand écran couleur avec écran tactile, AndroPOD peut aussi offre ses aides. Dans notre projet, nous l'utilisons pour que l'on puisse contrôler le robot Lynxmotion avec notre appareil\footnote{Samsung Galaxy Nexus, fourni par l'école} Android.
-
-\section{Utilisation}
-
-Sur ce site\footnote{\url{http://www.xdevelop.at}}, nous avons trouvé un tutorial détailé pour prendre en mains AndroPOD. 
-
-
-Pour connecter et communiquer avec la carte à partir du bout Android, il suffit d'établir un serveur TCP sur le port 1337.
-
-
-\begin{lstlisting}
-try
-{
-     //Etablir un serveur sur le port 1337
-     ServerSocket socket = new ServerSocket(1337);
-    
-     //Attendre la connexion de Andropod
-     Socket andropodInterface = socket.accept();
-
-     //Ouvrir IO flux
-     PrintReader in = new BufferedReader(new InputStreamReader(andropodInterface.getInputStream()));
-     PrintWriter out = new PrintWriter(andropodInterface.getOutputStream(), true);
-
-     //Envoyer ce que vous voulez
-     out.println("Hello Androdpod!");
-
-     //Recevoir les données
-     string message = in.readln();
-}
-catch (IOException e) 
-{
-     //En cas d'exception
-} 
-\end{lstlisting}
-
-
-D'autre part, pour relier AndroPOD et le mobile avec le câble usb-microusb fourni, il suffit de faire après ces 5 étapes :
+Pour cela, on considère deux cas possible que notre algorithme rencontrera:
 \bigskip
 \begin{enumerate}
-	\item \textbf{Configuration de l'interface Andropod avec le PC}\\
-Installer le logiciel de configuration Andropod sur le PC, changer l'interface Andropod en ''Configure mode'' (voir figure\ref{fig:ch2_carte}) et la connecter au PC en utilisant un USB câble. Ensuite, on peut éventuellement configurer les autres paramètres avec \textit{AndroPOD Interface Controller}(figure\ref{fig:ch2_andropodcontroller}).
-
-\begin{figure}[!ht]
-	\centering
-		\includegraphics[width=14cm]{pics/ch2_carte.jpg}
-	\caption{La carte AndroPOD}
-	\label{fig:ch2_carte}
-\end{figure}
-
-\begin{figure}[!ht]
-	\centering
-		\includegraphics[width=14cm]{pics/ch2_andropodcontroller.png}
-	\caption{AndroPOD Interface Controller}
-	\label{fig:ch2_andropodcontroller}
-\end{figure}
-
-	\item \textbf{Connecter-la au robot}\\
-Utiliser quatre fils simples, dont deux pour le voltage +5 V, GND et les deux autres pour RX et TX. L'interface AndroPOD a besoin de 5V vers 550mA afin de charger le téléphone Android (si on n'arrive pas à charger le téléphone lorsqu'il est connecté à l'USB , l'énergie sera consommée très vite. C'est notre cas.). Maintenant une LED sur l'interface Andropod doit s'allumer.
-
-	\item \textbf{Activer l'option ''Débogage USB'' sur le mobile Android}\\
-
-	\item \textbf{Connectez l'appareil Android à Andropod}\\
-Maintenant la deuxième LED sur l'interface AndroPOD devrait commencer à clignoter, et le téléphone devrait nous dire que le débogage USB est connecté.
-
-	\item \textbf{Démarrez l'application sur le téléphone Android}
-Maintenant la deuxième LED arrête de clignoter et rester allumée.
+	\item Le point cible est atteignable
+	\item Le point cible n'est pas atteignable
 \end{enumerate}
 
 
-Après ces 5 étapes, nous avons réussi de connecter l'interface AndroPOD.
+\subsection{Premier cas}
+Pour le premier cas, l'algorithme doit s'arrêter quand la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie (0.00001 par exemple), et il doit renvoyer l'ensemble des variable articulaires courantes.
 
 
+La définition de la valeur de borne est très souple selon le problème réel. Par exemple dans le problème présenté dans le chapitre précédant, la précision n'est pas trop importante, car on peut dire sans problème que "une personne peut atteidre un point dans sa chambre si la distance entre ce point et le bout de son doigt est seulement 1mm". Dans notre implémentation, cette valeur est 0.0001, qui est à la fois assez petite et pas trop coûteuse par rapport au temp d'execution essentiel pour arriver à la fin de l'algorithme.
 
 
-\begin{figure}[!ht]
-	\centering
-		\includegraphics[width=16cm]{pics/ch2_schema.pdf}
-	\caption{Schéma de la carte AndroPOD}
-	\label{fig:ch2_schema}
-\end{figure}
+\subsection{Deuxieme cas}
+Pour le deuxième cas, puisque le point cible n'est réelment pas atteignable, on ne va jamais avoir une distance assez petite entre le point courant et le point cible. En analysant l'algorithme, nous pensons intuitivement que l'algorithme doit s'arrêter quand il arrive un état "consistant". Ca veut dire que l'algorithme ne peut déjà pas améliorer aucune variable articulaire $\Theta_i$ dans deux itérations consécutives. 
+
+
+Nous avons testé notre algorithme avec cette condition d'arrêt, mais le résultat n'est pas préférable. Après une analyse plus détaillée, nous avons pu trouver le truc : même si le point cible est atteignable, on peut aussi avoir des état consistant pendant l'execution de l'algorithme à cause de la valeur de \textsl{IncrementRate}. C'est assez raisonnable, car quand le changement est trop grand, c'est possible que aucun changement n'est utile pour améliorer le résultat, et c'est pour ça qu'on diminue la valeur \textsl{IncrementRate} en ce moment-là en apportant des changement plus délicats. Et donc, on ajoute une autre condition en dehors de la consistance d'état, c'est que la valeur de \textsl{IncrementRate} doit être assez petite pour assurer qu'il n'y a vraiment pas de possibilité d'améliorer le résultat.
+
+BORNE[i]=0.000001/((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);//precision:0.00...1°
+%%%%%%%
+En un mot, l'algorithme IAA (avec notre implémentation) doit s'arrêter quand l'une des deux conditions ci-après est vérifier: soit la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie; soit la valeur de \textsl{IncrementRate} est inférieur à une valeur prédéfinie et les variables articulaires $\Theta$ ont un état consistant.
+
+
+\section{Implémentation de l'algorithme IAA}
+\subsection{Choix de langage}
+Nous avons choisi C++ en tant que langage de programmation avec les considération ci-après:
+\begin{itemize}
+	\item Ce travail consiste à plutôt les calculs au lieu des logique commercials ou interface de interation. C'est très efficace d'utiliser C++ que les autre langages supérieurs.
+	\item C++ possède des caratéristiques orienté-objet, qui peut nous faciliter
+\end{itemize}} 
+
+
+\section{Test de l'algorithme IAA}
