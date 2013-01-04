@@ -1,0 +1,74 @@
+\section{Problème réel concerné} 
+Après obtenir ce sujet, nous avons tout d'abord étudié l'article\cite{1} proposé par notre encadrant. Nous nous apercevons que le sujet de notre projet est une modélisation de plein de problèmes réels. Dans l'article nous avons lu, le problème concret est d'évaluer l'accessibilité dans un environnement bâti lors que les capacités physique de la personne ne correspondent plus aux nécessité de l'habitat ce qui suivient en général aprés un accident de la vie. 
+
+
+Ce problème, selon les auteurs de cet article, peut alors formulé comme un problème de résolution de l'inverse cinématique d'une structure articulée composée de la personne et de son dispositif de mobilité en considérant l'amplitude de ses capacités physiques résiduelles.
+
+
+\section{Catégories des solutions existantes}
+Trois types de méthodes sont disponible actuellement pour établir l'existence d'une inverse cinématique de la chaîne articulaire par rapport au point à atteindre:
+
+\begin{itemize}
+	\item Les méthodes analytiques.
+ 	\item Les méthodes de linéarisation.
+ 	\item Les méthodes d'optimisation.
+\end{itemize}
+\bigskip
+
+Le troisième catégorie est le plus intéressant et souvent utilisée lorsque le nombre de varialbles est important et si l'on désire obtenir des solutions respectant certains critères. Le principe consiste à formuler le problème comme un problème d'optimisation par minimisation d'une fonction de côut. Ici la fonction de côut est de forme:
+	\[
+	\epsilon=\left|f([\Theta])-[X]\right|
+	\]
+
+
+Dans cette fonction:
+
+
+\begin{itemize}
+	\item $\Theta$ représente l'ensemble des variables articulaires qu'on cherche.
+ 	\item $f([\Theta])$ représente le point qu'on peut atteindre avec les variables $\Theta$.
+ 	\item $[X]$ représente le point qu'on veut tester l'accessibilité.
+ 	\item $\epsilon$ est donc la distance entre le point cible et le point qu'on peut atteindre pour le moment, et donc la valeur de $\epsilon$ est à minimiser.
+\end{itemize}
+\bigskip
+
+
+Si on peut obtenir, à la fin de l'algorithme, un ensemble de $\Theta$ qui peut assurer que la valeur de $\epsilon$ est inférieur à une valeur prédéfini, alors on peut dire que le point cible est atteignable avec les variables $\Theta$. Et l'algorithme doit aussi traiter correctment le cas où le point n'est pas atteignable.
+
+
+Dans le problème réel, il faut aussi prendre en compte que les variables articulaires qu'on obtient sont bien raisonnable. Par exemple, le joint coude humain n'a (normalement) pas de degrée de liberté entre $[0, 2\pi]$.
+
+
+Dans la section suivante, on va présenter l'algorithme IAA, qui nous permet de résoudre ce problème.
+
+
+\section{Algorithme IAA}
+L'algorithme IAA\cite{1} est représenté ci-dessous.
+
+
+\begin{algorithm}[H]
+ \SetAlgoLined
+ \LinesNumbered
+ Initialiser les variables $\Theta_i$ de manière aléatoire\;
+ \Repeat{les condition d'arrêts sont vérifiées}{
+Définir l'incrément Inc(i) (Incrément par variable articulaire)\;
+		\ForEach{variable $\Theta_i$}{
+				$\Theta_i = \Theta_i + Inc(i)$\;
+				Calculer la distance entre la position courante et le but tel que $\epsilon=\left|f([\Theta])-[X]\right|$\;
+				\eIf{$(\Delta\epsilon < 0)$}{ garder $\Theta_i$ (On est plus proche que le point cible)}
+				{$\Theta_i = \Theta_i - 2*Inc(i)$ (chercher vers l'autre sens)\;
+						Calculer $\epsilon=\left|f([\Theta])-[X]\right|$\;
+						\eIf{$(\Delta\epsilon < 0)$}{garder $\Theta_i$}
+						{$\Theta_i = \Theta_i + Inc(i)$ (garder la valeur d'origine)}}}
+}
+\end{algorithm}
+
+
+Selon l'article \cite{2}, nous avons pu trouver une définition possible de la fonction $Inc(i)$:
+\[
+Inc(i) = (max(i) - min(i))*IncrementRate
+\]
+avec max(i) et min(i) sont les limites maximales et minimales de l'articulation i. La valeur de \textsl{IncrementRate} ajuste la vitesse de convergence de l'algorithme. La convergence est rapide au départ et ensuite devient plus faible à proximité de la solution. Une modification de \textsl{IncrementRate} est aussi proposée:
+\[
+\textbf{If}(\Delta\epsilon = 0)  \textbf{Alors}  \textsl{IncrementRate} = \textsl{IncrementRate}/2
+\]
