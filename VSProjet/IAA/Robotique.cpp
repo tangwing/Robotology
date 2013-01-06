@@ -99,7 +99,13 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
         //than this threshold, and the values of theta cannot be
         //improved, then the function return false, which means that
         //the target point is not reachable.
-		BORNE_RATE[i]=0.0001/((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);//precision:0.00...1°
+        if(QUAconfig[i].maxTheta <= QUAconfig[i].minTheta)
+        {
+            incRate[i]=0;
+            BORNE_RATE[i] = 0;
+        }else
+		    BORNE_RATE[i]=0.0001/   //precision:0.00...1°
+                ((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);
     }
 
 	POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));

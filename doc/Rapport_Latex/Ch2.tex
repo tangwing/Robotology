@@ -2,7 +2,7 @@
 La description de l'algorithme IAA qu'on a pu trouver n'est pas précise. Pour implémenter cet algorithme, il nous reste du travail à faire pour préciser tout l'algorithme. Le plus important est de fixer la condition d'arrêt de cet algorithme.
 
 
-Pour cela, on considère deux cas possible que notre algorithme rencontrera:
+Pour cela, on considère deux cas possibles que notre algorithme rencontrera:
 \bigskip
 \begin{enumerate}
 	\item Le point cible est atteignable
@@ -11,30 +11,226 @@ Pour cela, on considère deux cas possible que notre algorithme rencontrera:
 
 
 \subsection{Premier cas}
-Pour le premier cas, l'algorithme doit s'arrêter quand la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie (0.00001 par exemple), et il doit renvoyer l'ensemble des variable articulaires courantes.
+Pour le premier cas, l'algorithme doit s'arrêter quand la distance entre le point courant et le point cible est inférieure à une valeur prédéfinie (0.0001 par exemple), et il doit renvoyer l'ensemble des variables articulaires courantes.
 
 
-La définition de la valeur de borne est très souple selon le problème réel. Par exemple dans le problème présenté dans le chapitre précédant, la précision n'est pas trop importante, car on peut dire sans problème que "une personne peut atteidre un point dans sa chambre si la distance entre ce point et le bout de son doigt est seulement 1mm". Dans notre implémentation, cette valeur est 0.0001, qui est à la fois assez petite et pas trop coûteuse par rapport au temp d'execution essentiel pour arriver à la fin de l'algorithme.
+La définition de la valeur de bornes est très souple selon le problème réel. Par exemple dans le problème présenté dans le chapitre précédent, la précision n'est pas trop importante, car on peut dire sans problème que "une personne peut atteindre un point dans sa chambre si la distance entre ce point et le bout de son doigt est seulement 1mm". Dans notre implémentation, cette valeur est 0.0001, qui est à la fois assez petite et pas trop coûteuse par rapport au temps d'exécution essentielle pour arriver à la fin de l'algorithme.
 
 
-\subsection{Deuxieme cas}
-Pour le deuxième cas, puisque le point cible n'est réelment pas atteignable, on ne va jamais avoir une distance assez petite entre le point courant et le point cible. En analysant l'algorithme, nous pensons intuitivement que l'algorithme doit s'arrêter quand il arrive un état "consistant". Ca veut dire que l'algorithme ne peut déjà pas améliorer aucune variable articulaire $\Theta_i$ dans deux itérations consécutives. 
+\subsection{Deuxième cas}
+Pour le deuxième cas, puisque le point cible n'est réellement pas atteignable, on ne va jamais avoir une distance assez petite entre le point courant et le point cible. En analysant l'algorithme, nous pensons intuitivement que l'algorithme doit s'arrêter quand il arrive un état "consistant". Ça veut dire que l'algorithme ne peut déjà pas améliorer aucune variable articulaire $\Theta_i$ dans deux itérations consécutives. 
 
 
-Nous avons testé notre algorithme avec cette condition d'arrêt, mais le résultat n'est pas préférable. Après une analyse plus détaillée, nous avons pu trouver le truc : même si le point cible est atteignable, on peut aussi avoir des état consistant pendant l'execution de l'algorithme à cause de la valeur de \textsl{IncrementRate}. C'est assez raisonnable, car quand le changement est trop grand, c'est possible que aucun changement n'est utile pour améliorer le résultat, et c'est pour ça qu'on diminue la valeur \textsl{IncrementRate} en ce moment-là en apportant des changement plus délicats. Et donc, on ajoute une autre condition en dehors de la consistance d'état, c'est que la valeur de \textsl{IncrementRate} doit être assez petite pour assurer qu'il n'y a vraiment pas de possibilité d'améliorer le résultat.
+Nous avons testé notre algorithme avec cette condition d'arrêt, mais le résultat n'est pas préférable. Après une analyse plus détaillée, nous avons pu trouver le truc : même si le point cible est atteignable, on peut aussi avoir des états consistants pendant l'exécution de l'algorithme à cause de la valeur de \textsl{IncrementRate}. C'est assez raisonnable, car quand le changement est trop grand, c'est possible qu'aucun changement n'ait utile pour améliorer le résultat, et c'est pour ça qu'on diminue la valeur \textsl{IncrementRate} en ce moment-là en apportant des changements plus délicats. Et donc, on ajoute une autre condition en dehors de la consistance d'état, c'est que la valeur de \textsl{IncrementRate} doit être assez petite pour assurer qu'il n'y a vraiment pas de possibilité d'améliorer le résultat.
 
-BORNE[i]=0.000001/((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);//precision:0.00...1°
-%%%%%%%
-En un mot, l'algorithme IAA (avec notre implémentation) doit s'arrêter quand l'une des deux conditions ci-après est vérifier: soit la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie; soit la valeur de \textsl{IncrementRate} est inférieur à une valeur prédéfinie et les variables articulaires $\Theta$ ont un état consistant.
+
+Nous avons utilisé dans notre program, pour IncrementRate[i], une borne calculée comme ça:
+\[ BORNE[i]=(0.0001/180*PI)/(QUAconfig[i].maxTheta - QUAconfig[i].minTheta); \]
+
+Notre motivation de le faire, c'est pour avoir une précision de 0.0001° par rapport aux chaque changement apporté par Inc(i). Autrement dit, quand IncrementRate[i] égale à BORNE[i], ça veut dire que la ième articulation essaie d'améliorer la solution en apportant un changement de précision 0.0001°.
+
+
+En un mot, l'algorithme IAA (avec notre implémentation) doit s'arrêter quand l'une des deux conditions ci-après est vérifiée: soit la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie; soit la valeur de \textsl{IncrementRate} est inférieur à une valeur prédéfinie et les variables articulaires $\Theta$ ont un état consistant.
 
 
 \section{Implémentation de l'algorithme IAA}
 \subsection{Choix de langage}
-Nous avons choisi C++ en tant que langage de programmation avec les considération ci-après:
+Nous avons choisi C++ en tant que langage de programmation avec les considérations ci-dessous:
 \begin{itemize}
-	\item Ce travail consiste à plutôt les calculs au lieu des logique commercials ou interface de interation. C'est très efficace d'utiliser C++ que les autre langages supérieurs.
-	\item C++ possède des caratéristiques orienté-objet, qui peut nous faciliter
-\end{itemize}} 
+	\item Ce travail consiste à plutôt les calculs au lieu des logiques commerciales ou interface d'interaction. C'est très efficace d'utiliser C++ que les autres langages supérieurs.
+	\item C++ possède des caractéristiques orientées objets, qui peut nous faciliter le travail.
+	\item Nous venous de finir les cours de C++ avant de commencer ce projet, donc c'est une opportunité pour nous de pratiquer ce langage.
+\end{itemize}
+
+\clearpage
+\subsection{Le diagramme de classes}
+Le travail principal est d'implémenter l'algorithme IAA, mais pour faciliter notre traitement des données pendant les calculs, nous avons aussi défini quelques classes. Nous vous montrons notre diagramme de classes au-dessous:
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.7]{pics/ch2_classdiagram.png}
+	\caption{Diagramme de classes}
+	\label{fig:ch2_classdiagram}
+\end{figure}
+
+%\begin{center}
+%\includegraphics{pics/ch2_classdiagram.png}%
+%\captionof{figure}{text}\label{labelname}%
+%\end{center}
+
+\subsection{Le code source critique de l'algorithme}
+Dans cette section, nous mettons le code source de la fonction critique qui réalise l'algorithme IAA: 
+
+
+\begin{lstlisting}[language=C++]
+/**L'algorithme qui vérifie si un point est atteignable. 
+*@param QUAn Un tableau de quadruplet qui représente la configuration du robot.
+*            Les valeurs QUAn[i].theta sont à chercher, dons les valeurs initiales
+*            sont ignorés.
+*@param iCount Le nombre de quadruplet dans le tableau QUAn
+*@param POItarget Le point cible.
+*@result false Si le point cible n'est pas atteignable
+*        true  Si le point cible est atteignable, les valeurs articulaires
+*              sont affecté à QUAn[i].theta.
+*/
+bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
+{
+int i;
+bool flag = true;
+double lastX;//The theta of the last time
+  
+//A table of increment rate
+double *incRate = new double[n];
+  
+//stop condition
+double *BORNE_RATE = new double[n];
+  
+//The coordinate of the current point that we can reach
+Point POIcurrent;
+  
+//The distance between the current point and the target point
+double lastDist, newDist;
+  
+//Initialisation
+for(i=0; i<n; i++)
+{
+    QUAconfig[i].QUAset_random_theta();
+    incRate[i]=0.15;//cf the article of Abdelhak MOUSSAOUI
+    
+    //Stop condition: If the value of IncrementRate is less
+    //than this threshold, and the values of theta cannot be
+    //improved, then the function return false, which means that
+    //the target point is not reachable.
+    BORNE_RATE[i]=0.0001*PI/180/    //precision:0.00...1°
+        (QUAconfig[i].maxTheta - QUAconfig[i].minTheta);
+}
+
+POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
+lastDist = distance(POIcurrent, POItarget);
+
+int j=0, times = 0;
+while(flag)
+{
+    flag = false;
+    
+    //for each value of theta
+    for(i=0; i<n; i++)
+    {
+        POItarget.dx, POItarget.dy, POItarget.dz);
+        lastX = QUAconfig[i].theta;
+        
+        //inc
+        QUAconfig[i].theta+=(QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+        if(QUAconfig[i].theta > QUAconfig[i].maxTheta)
+            QUAconfig[i].theta = QUAconfig[i].maxTheta;
+
+        POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
+        newDist = distance(POIcurrent, POItarget);
+                 
+        if (newDist < lastDist)
+        {//We get a better value
+          //Keep the new value
+          lastDist=newDist;
+          flag=true;
+        }
+        else
+        {
+            //search another possibility
+		        QUAconfig[i].theta = lastX - 
+		          (QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+            if(QUAconfig[i].theta < QUAconfig[i].minTheta)
+                QUAconfig[i].theta=QUAconfig[i].minTheta;
+                
+            //calculate new distance
+            POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
+	          newDist = distance(POIcurrent, POItarget);
+            if(newDist < lastDist)
+            {//We get a better value
+                //Keep the new value
+                lastDist = newDist;
+                flag = true;
+            }
+            else
+            {
+                //Keep the original value
+                QUAconfig[i].theta=lastX;
+                
+                //Adjust increment rate
+                incRate[i]/=2;
+                if(incRate[i]>BORNE_RATE[i])
+                   flag = true;
+                newDist = lastDist;
+            }
+              
+        }
+        if(newDist<BORNE_DIS)
+        {
+            delete []incRate;
+            return true;
+        }
+    }
+}
+
+    if(true == testLocalMinimum(QUAconfig, n))
+    {
+        printf("We've probably encountered a \"Local minimum\" situation. Try again.\n");
+    }
+    delete []incRate;
+    return false;
+}
+\end{lstlisting}
 
 
 \section{Test de l'algorithme IAA}
+Après avoir fini le codage de l'algorithme, nous l'avons testé avec quelques exemples de robots qu'on a vus dans les cours de la robotique. 
+
+\subsection{Un exemple spécifique}
+Nous présentons un exemple spécifique que nous avons testé, concernant un manipulateur de 5 rotations, représenté dans la figure au-dessous:
+
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.6]{pics/ch2_config.jpg}
+	\caption{Le medèle utilisé (h=2m; l1,l2,l3=1m)}
+	\label{fig:ch2_config}
+\end{figure}
+
+
+Selon notre implémentation, pour représenter cette configuration du bras manipulateur, il suffit de créer un tableau d'objet de classe \textbf{Quadruplet}, dont chaque objet représente une transformation de repère. La dernière articulation est particulière, elle n'intervient pas dans notre travail, car la rotation de cette articulation ne change pas les coordonnées du point de l'organe terminal. Donc on a 4 objets au total dans le tableau:
+
+\begin{lstlisting}[language=C++]
+//La réprésentation de la configuration du bras manipulateur (On a imposé des limites)
+Quadruplet pQUAconfig1[4];
+pQUAconfig1[0] = Quadruplet(PI/2, 2, PI/2, 0,     0,   PI);
+pQUAconfig1[1] = Quadruplet(   0, 0,    0, 1, -PI/2, PI/2);
+pQUAconfig1[2] = Quadruplet(   0, 0,    0, 1,     0, PI/2);
+pQUAconfig1[3] = Quadruplet(   0, 0,    0, 1,     0, PI/2);
+
+//La représentation du point cible à tester
+Point POItarget1(0,0,3);
+\end{lstlisting}
+
+\bigskip
+Et puis on peut appeler la fonction IAA:
+\begin{lstlisting}[language=C++]
+//La valeur renvoyée indique si le point cible est bien atteignable ou non.
+bool res = Robotique::IAA( pQUAconfig1, 4, POItarget1);
+
+//C'est une fonction définie pour afficher les valeurs des
+//variables articulaires.
+printResIAA(pQUAconfig1, 4, res);
+\end{lstlisting}
+
+\clearpage
+\subsection{Interprétation de la solution}
+En conséquence de cet exemple spécifique, nous avons obtenu dans la fenêtre de terminal:
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.5]{pics/ch2_result.png}
+	\caption{Résultat obtenu}
+	\label{fig:ch2_result}
+\end{figure}
+
+
+L'algorithme a passé 27 itérations pour trouver la solution. Les valeurs des 4 variables articulaires finales sont affichées à la fin. Cette solution peut être interprétée comme ceci: pour atteindre le point (0,0,3), les 4 angles de rotation $\Theta_1,\Theta_2,\Theta_3,\Theta_4$ sont respectivement 73°,0°,90°,90°. Il peut aussi y avoir des autres solutions possibles. 

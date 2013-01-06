@@ -31,11 +31,11 @@ void testIAA()
 {
     //La configuration 5R. Le dernier organe articulaire n'intervient pas
 	Quadruplet pQUAconfig1[4];
-	pQUAconfig1[0] = Quadruplet(PI/2, 2, PI/2, 0,     0, PI);
-    pQUAconfig1[1] = Quadruplet(0,    0, 0,    1, -PI/2, PI/2);
-	pQUAconfig1[2] = Quadruplet(0,    0, 0,    1, 0, PI/2);
-	pQUAconfig1[3] = Quadruplet(0,    0, 0,    1, 0, PI/2);
-	Point POItarget1(0,0,3);
+	pQUAconfig1[0] = Quadruplet(PI/2, 2, PI/2, 0,  0, PI);     //0, PI);
+    pQUAconfig1[1] = Quadruplet(0,    0, 0,    1,  -PI/2, PI/2);     //0, 0);
+	pQUAconfig1[2] = Quadruplet(0,    0, 0,    1,  -PI/2, PI/2);     //0,PI);//PI/4, PI*3/4);
+	pQUAconfig1[3] = Quadruplet(0,    0, 0,    1,  -PI/2, PI/2);     //0,PI);//    
+	Point POItarget1(0,2,3);
 
     /**A cause des limites on a imposés aux variables articulaires,
     *l'algorithme peut rencontrer des minimas locaux. Et on constate que
