@@ -7,6 +7,7 @@
 //La borne de distance qui nous permet de 
 //prendre 2 points pour un seul.
 #define BORNE_DIS 0.0001
+#define PRECISION 0.0001 //degree
 
 inline double jd2(double dsrc)
 {
@@ -90,97 +91,121 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 	//The distance between the current point and the target point
     double lastDist, newDist;
     
-	//Initialisation
-    for(i=0; i<n; i++)
+    int timesTry = 0, maxTryTimes = 3;
+    Point lastPOIcurrent;
+    //If we encounter local minimum situation, then
+    //we will try aother 2 times with different initialisation
+    for(timesTry = 0; timesTry<maxTryTimes; timesTry++)
     {
-		QUAconfig[i].QUAset_random_theta();
-        incRate[i]=0.15;//cf the article of Abdelhak MOUSSAOUI
-        //Stop condition: If the value of IncrementRate is less
-        //than this threshold, and the values of theta cannot be
-        //improved, then the function return false, which means that
-        //the target point is not reachable.
-        if(QUAconfig[i].maxTheta <= QUAconfig[i].minTheta)
-        {
-            incRate[i]=0;
-            BORNE_RATE[i] = 0;
-        }else
-		    BORNE_RATE[i]=0.0001/   //precision:0.00...1°
-                ((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);
-    }
-
-	POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
-    lastDist = distance(POIcurrent, POItarget);
-
-    int j=0, times = 0;
-    while(flag)
-    {
-        printf("Itération %d\t-------------------------------------------------\n", times++);
-        flag = false;
-		//for each value of theta
+	    //Initialisation
         for(i=0; i<n; i++)
         {
-			printf("Theta %d, initial: theta=%f; dis=%f; incRate=%f; goalPoint=(%f,%f,%f)\n",
-                i+1,QUAconfig[i].theta,lastDist,incRate[i],
-                POItarget.dx, POItarget.dy, POItarget.dz);
-            lastX = QUAconfig[i].theta;
-            //inc
-			QUAconfig[i].theta+=(QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
-            if(QUAconfig[i].theta > QUAconfig[i].maxTheta)
-                QUAconfig[i].theta = QUAconfig[i].maxTheta;
-
-            POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
-			newDist = distance(POIcurrent, POItarget);
-            //printf("Theta %d:       newX=%f; newpoint:(%f;%f;%f); dis=%f\n", i+1, QUAconfig[i].theta,POIcurrent.dx,POIcurrent.dy,POIcurrent.dz,newDist);
-            
-			if (newDist < lastDist)
-            {//We get a better value
-                //Keep the new value
-                lastDist=newDist;
-                flag=true;
-                //incRate[i]*=2;
-            }
-			else
+		    QUAconfig[i].QUAset_random_theta();
+            incRate[i]=0.15;//cf the article of Abdelhak MOUSSAOUI
+            //Stop condition: If the value of IncrementRate is less
+            //than this threshold, and the values of theta cannot be
+            //improved, then the function return false, which means that
+            //the target point is not reachable.
+            if(QUAconfig[i].maxTheta <= QUAconfig[i].minTheta)
             {
-                //search another possibility
-				QUAconfig[i].theta = lastX - (QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
-                if(QUAconfig[i].theta < QUAconfig[i].minTheta)
-                    QUAconfig[i].theta=QUAconfig[i].minTheta;
-                //calculate new distance
+                incRate[i]=0;
+                BORNE_RATE[i] = 0;
+            }else
+		        BORNE_RATE[i]=PRECISION/   //precision:0.00...1°
+                    ((QUAconfig[i].maxTheta - QUAconfig[i].minTheta)*180/PI);
+        }
+
+	    POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
+        lastDist = distance(POIcurrent, POItarget);
+
+        int j=0, times = 0;
+
+        while(flag)
+        {
+            printf("Iteration %d; Algo call times: %d\t---------------------------------\n", times++, timesTry+1);
+            flag = false;
+		    //for each value of theta
+            for(i=0; i<n; i++)
+            {
+			    printf("Theta %d, initial: theta=%f; dis=%f; incRate=%f; goalPoint=(%f,%f,%f)\n",
+                    i+1,QUAconfig[i].theta,lastDist,incRate[i],
+                    POItarget.dx, POItarget.dy, POItarget.dz);
+                lastX = QUAconfig[i].theta;
+                //inc
+			    QUAconfig[i].theta+=(QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+                if(QUAconfig[i].theta > QUAconfig[i].maxTheta)
+                    QUAconfig[i].theta = QUAconfig[i].maxTheta;
+
                 POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
-				newDist = distance(POIcurrent, POItarget);
-                if(newDist < lastDist)
+			    newDist = distance(POIcurrent, POItarget);
+                //printf("Theta %d:       newX=%f; newpoint:(%f;%f;%f); dis=%f\n", i+1, QUAconfig[i].theta,POIcurrent.dx,POIcurrent.dy,POIcurrent.dz,newDist);
+            
+			    if (newDist < lastDist)
                 {//We get a better value
                     //Keep the new value
-                    lastDist = newDist;
-                    flag = true;
+                    lastDist=newDist;
+                    flag=true;
                     //incRate[i]*=2;
                 }
-				else
+			    else
                 {
-                    //Keep the original value
-                    QUAconfig[i].theta=lastX;
-                    //Adjust increment rate
-                    incRate[i]/=2;
-                    if(incRate[i]>BORNE_RATE[i])
-                       flag = true;
-                    newDist = lastDist;
-                }
+                    //search another possibility
+				    QUAconfig[i].theta = lastX - (QUAconfig[i].maxTheta-QUAconfig[i].minTheta)*incRate[i];
+                    if(QUAconfig[i].theta < QUAconfig[i].minTheta)
+                        QUAconfig[i].theta=QUAconfig[i].minTheta;
+                    //calculate new distance
+                    POIcurrent = ROBgetPfromM(ROBcalculMGD(QUAconfig, n));
+				    newDist = distance(POIcurrent, POItarget);
+                    if(newDist < lastDist)
+                    {//We get a better value
+                        //Keep the new value
+                        lastDist = newDist;
+                        flag = true;
+                        //incRate[i]*=2;
+                    }
+				    else
+                    {
+                        //Keep the original value
+                        QUAconfig[i].theta=lastX;
+                        //Adjust increment rate
+                        incRate[i]/=2;
+                        if(incRate[i]>BORNE_RATE[i])
+                           flag = true;
+                        newDist = lastDist;
+                    }
                 
+                }
+                printf("Theta %d,   final: theta=%f; dis=%f; incRate=%f; currPoint=(%f,%f,%f)\n\n",
+                    i+1,QUAconfig[i].theta,newDist,incRate[i], 
+                    POIcurrent.dx, POIcurrent.dy, POIcurrent.dz);
+			    if(newDist<BORNE_DIS)
+			    {
+				    delete []incRate;
+                    return true;
+			    }
             }
-            printf("Theta %d,   final: theta=%f; dis=%f; incRate=%f; currPoint=(%f,%f,%f)\n\n",
-                i+1,QUAconfig[i].theta,newDist,incRate[i], 
-                POIcurrent.dx, POIcurrent.dy, POIcurrent.dz);
-			if(newDist<BORNE_DIS)
-			{
-				delete []incRate;
-                return true;
-			}
         }
-    }
-
-    if(true == testLocalMinimum(QUAconfig, n))
-    {
-        printf("We've probably encountered a \"Local minimum\" situation. Try again.\n");
+        
+        //Le point n'est pas atteint mais c'est peut être un minimum local
+        flag = true;
+        if(timesTry == 0)
+        { 
+            lastPOIcurrent = POIcurrent;
+        }else if( distance(POIcurrent, lastPOIcurrent)> BORNE_DIS)
+        {
+            //This or last time is a local minimum, because we haven't get
+            //to the same point after algo IAA, so try 3 more times.
+            maxTryTimes = timesTry+3;
+        }
+        if(timesTry > 10)
+        {
+            printf("On rencontre toujours \"Minimums locaux\", algo s'arrête. \nVeuillez vérifier les limites imposées aux variables articulaires.\n");
+        }
+        /*if(true == testPossibleLocalMinimum(QUAconfig, n))
+        {
+            printf("We've probably encountered a \"Local minimum\" situation.\nPress 'Enter' to try again.(Algo can run maximum 3 times.)\n");
+            getchar();
+        }*/
     }
 	delete []incRate;
     return false;
@@ -189,8 +214,9 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
 /**Test whether the algorithm IAA
 *falls into the "local minimum" situation. This situation 
 *often appears when we have limites for the articulars variables.
+*@deprecated This function can't test the probleme correctly
 */
-bool Robotique::testLocalMinimum(Quadruplet* QUAconfig, int n)
+bool Robotique::testPossibleLocalMinimum(Quadruplet* QUAconfig, int n)
 {
     
     int i;

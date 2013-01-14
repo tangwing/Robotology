@@ -25,9 +25,9 @@ Nous avons testé notre algorithme avec cette condition d'arrêt, mais le résultat
 
 
 Nous avons utilisé dans notre program, pour IncrementRate[i], une borne calculée comme ça:
-\[ BORNE[i]=(0.0001/180*PI)/(QUAconfig[i].maxTheta - QUAconfig[i].minTheta); \]
+\[ BORNE\_RATE[i]=(0.0001/180*PI)/(QUAconfig[i].maxTheta - QUAconfig[i].minTheta); \]
 
-Notre motivation de le faire, c'est pour avoir une précision de 0.0001° par rapport aux chaque changement apporté par Inc(i). Autrement dit, quand IncrementRate[i] égale à BORNE[i], ça veut dire que la ième articulation essaie d'améliorer la solution en apportant un changement de précision 0.0001°.
+Notre motivation de le faire, c'est pour avoir une précision de 0.0001\degre par rapport aux chaque changement apporté par Inc(i). Autrement dit, quand IncrementRate[i] égale à $BORNE_RATE[i]$, ça veut dire que la ième articulation essaie d'améliorer la solution en apportant un changement de précision 0.0001\degre.
 
 
 En un mot, l'algorithme IAA (avec notre implémentation) doit s'arrêter quand l'une des deux conditions ci-après est vérifiée: soit la distance entre le point courant et le point cible est inférieur à une valeur prédéfinie; soit la valeur de \textsl{IncrementRate} est inférieur à une valeur prédéfinie et les variables articulaires $\Theta$ ont un état consistant.
@@ -101,7 +101,7 @@ for(i=0; i<n; i++)
     //than this threshold, and the values of theta cannot be
     //improved, then the function return false, which means that
     //the target point is not reachable.
-    BORNE_RATE[i]=0.0001*PI/180/    //precision:0.00...1°
+    BORNE_RATE[i]=0.0001*PI/180/    //precision:0.00...1\degre
         (QUAconfig[i].maxTheta - QUAconfig[i].minTheta);
 }
 
@@ -184,8 +184,85 @@ while(flag)
 \section{Test de l'algorithme IAA}
 Après avoir fini le codage de l'algorithme, nous l'avons testé avec quelques exemples de robots qu'on a vus dans les cours de la robotique. 
 
-\subsection{Un exemple spécifique}
-Nous présentons un exemple spécifique que nous avons testé, concernant un manipulateur de 5 rotations, représenté dans la figure au-dessous:
+
+\subsection{Un exemple simplifié}
+Nous avons tout d'abords testé l'algorithme avec un bras manipulateur à 2 rotation. La zone atteignable de l'organe terminal est limité sur un plan dont la coordonnée de l'axe z est fixe. Alors on peut identifier un point avec seulement les coordonnées des axes x et y (Figure\ref{fig:ch2_robo2r}).
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.7]{pics/ch2_robo2r.jpg}
+	\caption{Bras manipulateur 2R (P1=1m,P2=0.75m)}
+	\label{fig:ch2_robo2r}
+\end{figure}
+
+
+On peut représenter cette configuration avec deux quadruplets Denavit (Figure\ref{fig:ch2_paramtable}).
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.9]{pics/ch2_paramtable.jpg}
+	\caption{Configuration du bras 2R}
+	\label{fig:ch2_paramtable}
+\end{figure}
+
+\clearpage
+Selon notre implémentation, pour représenter cette configuration du bras manipulateur, il suffit de créer un tableau d'objet de classe \textbf{Quadruplet}, dont chaque objet représente un tableau dans la figure ci-dessus.
+
+\begin{lstlisting}[language=C++]
+//La réprésentation de la configuration du bras manipulateur (On a imposé des limites)
+Quadruplet pQUAconfig2[2];
+pQUAconfig2[0] = Quadruplet(0, 0, 0, 1,    -PI/3, PI/3);
+pQUAconfig2[1] = Quadruplet(0, 0, 0, 0.75, -2*PI/3, PI/2);
+//La représentation du point cible à tester
+Point POItarget1(1.7,0,0);
+\end{lstlisting}
+
+\bigskip
+Et puis on peut appeler la fonction IAA:
+\begin{lstlisting}[language=C++]
+//La valeur renvoyée indique si le point cible est bien atteignable ou non.
+bool res = Robotique::IAA( pQUAconfig2, 2, POItarget2);
+
+//C'est une fonction définie pour afficher les valeurs des
+//variables articulaires.
+printResIAA(pQUAconfig2, 2, res);
+\end{lstlisting}
+
+
+En conséquence de cet exemple spécifique, nous avons obtenu dans la fenêtre de terminal:
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.5]{pics/ch2_result2r.png}
+	\caption{Résultat obtenu pour l'exemple 2R}
+	\label{fig:ch2_result2r}
+\end{figure}
+
+
+L'algorithme a passé 869 itérations pour trouver la solution. Les valeurs des 2 variables articulaires finales sont affichées à la fin. Cette solution peut être interprétée comme ceci: pour atteindre le point (1.7,0,0), les 2 angles de rotation $\Theta_1,\Theta_2$ sont respectivement 12\degre,-28\degre. Il peut aussi y avoir d'autres solutions possibles. 
+
+
+Si on change le point cible à (1.9,0,0), alors on va trouver que ce point n'est pas atteignable (Figure \ref{fig:ch2_result2r_nonatteignable}).
+
+
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.5]{pics/ch2_result2r_nonatteignable.png}
+	\caption{Le résultat obtenu quand le point cible n'est pas atteignable}
+	\label{fig:ch2_result2r_nonatteignable}
+\end{figure}
+
+
+On peut comparer cette solution avec la zone atteignable réelle pour vérifier sa validité.
+\begin{figure}[!htbp]
+	\centering
+		\includegraphics[scale=0.4]{pics/ch2_zoneatteignable.jpg}
+	\caption{Zone atteignable réelle pour l'exemple 2R}
+	\label{fig:ch2_zoneatteignable}
+\end{figure}
+
+\clearpage
+\subsection{Un exemple d'un bras à 5 rotation}
+Nous présentons un deuxième exemple spécifique que nous avons testé, concernant un manipulateur de 5 rotations, représenté dans la figure \ref{fig:ch2_config}.
 
 
 \begin{figure}[!htbp]
@@ -196,7 +273,7 @@ Nous présentons un exemple spécifique que nous avons testé, concernant un manipu
 \end{figure}
 
 
-Selon notre implémentation, pour représenter cette configuration du bras manipulateur, il suffit de créer un tableau d'objet de classe \textbf{Quadruplet}, dont chaque objet représente une transformation de repère. La dernière articulation est particulière, elle n'intervient pas dans notre travail, car la rotation de cette articulation ne change pas les coordonnées du point de l'organe terminal. Donc on a 4 objets au total dans le tableau:
+On crée un tableau d'objet de classe \textbf{Quadruplet}, dont chaque objet représente une transformation de repère. La dernière articulation est particulière, elle n'intervient pas dans notre travail, car la rotation de cette articulation ne change pas les coordonnées du point de l'organe terminal. Donc on a 4 objets au total dans le tableau:
 
 \begin{lstlisting}[language=C++]
 //La réprésentation de la configuration du bras manipulateur (On a imposé des limites)
@@ -222,7 +299,6 @@ printResIAA(pQUAconfig1, 4, res);
 \end{lstlisting}
 
 \clearpage
-\subsection{Interprétation de la solution}
 En conséquence de cet exemple spécifique, nous avons obtenu dans la fenêtre de terminal:
 
 \begin{figure}[!htbp]
@@ -233,4 +309,4 @@ En conséquence de cet exemple spécifique, nous avons obtenu dans la fenêtre de t
 \end{figure}
 
 
-L'algorithme a passé 27 itérations pour trouver la solution. Les valeurs des 4 variables articulaires finales sont affichées à la fin. Cette solution peut être interprétée comme ceci: pour atteindre le point (0,0,3), les 4 angles de rotation $\Theta_1,\Theta_2,\Theta_3,\Theta_4$ sont respectivement 73°,0°,90°,90°. Il peut aussi y avoir des autres solutions possibles. 
+L'algorithme a passé 27 itérations pour trouver la solution. Les valeurs des 4 variables articulaires finales sont affichées à la fin. Cette solution peut être interprétée comme ceci: pour atteindre le point (0,0,3), les 4 angles de rotation $\Theta_1,\Theta_2,\Theta_3,\Theta_4$ sont respectivement 73\degre,0\degre,90\degre,90\degre. Il peut aussi y avoir des autres solutions possibles. 

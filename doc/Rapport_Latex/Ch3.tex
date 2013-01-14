@@ -3,24 +3,74 @@
 Au début de l'implémentation de l'algorithme, nous obtenions souvent des résultats déraisonnables. Aprés avoir discuté avec notre encadrant, nous nous sommes aperçus que ça soit un problème de précision. Ça concerne la représentation interne des données en C++. Et puis nous avons changé notre type de donnée à \textbf{double} qui a enfin résolu ce problème.
 
 
-\section{Problèmes non résolus}
+\section{Problèmes non résolus de l'algorithme original}
+L'algorithme IAA a quelques problèmes qui sont déjà présentés dans les articles concernés. Puisque nous n'avons pas plus d'expériences que les auteurs de ces articles, nous n'avons pas non plus résolu ces problèmes. Mais nous avons quand même essayé de bien examiné et traiter ces problèmes.
+
 \subsection{Problème des minimums locaux}
 Un avantage de l'algorithme IAA est qu'on peut imposer des limits sur les variables articulaires, pour que la solution respecte certains critères particuliers. Mais ça nous amène aussi le problème des minimums locaux. Parfois l'algorithme se converge vers un minimum local (mais pas global), et donc dans un état consistant. En conséquence, il nous dit qu'il y a pas de solution (le point cible n'est pas atteignable), mais le point est en fait atteignable, et la solution n'était pas trouvée à cause des minimums locaux.
 
 
 C'est un problème commun des algorithmes similaires. C'est à cause des limites qu'on a imposées aux variables articulaires et à la initialisation aléatoire d'elles. Nous ne pouvons pas éliminer ce problème, mais nous pouvons essayer de l'examiner, pour qu'on puisse relancer l'algorithme au lieu de croire qu'il n'y a pas de solution.
 
+\subsubsection{Premier essai pour examier le problème de \textit{Minimum Local}}
+Nous constatons que quand un "minimum local" apparaît, il y a au moins une variable articulaire qui a atteint sa limite qu'on l'a imposée. Selon ça, dans notre programme, si aucune solution n'est trouvée, on va tester les variables articulaires courantes, s'il existe une variable articulaire qui a atteint sa limite, alors on affiche un message disant qu'on a \textbf{probablement} rencontré un minimum local(Figure\ref{fig:ch3_localminimum}). À savoir qu'on ne l'a pas prouvé mais plutôt le tester selon les expériences.
 
-Nous constatons que quand un "minimum local" apparaît, il y a au moins une variable articulaire qui a atteint sa limite qu'on l'a imposée. Selon ça, dans notre programme, si aucune solution n'est trouvée, on va tester les variables articulaires courantes, s'il existe une variable articulaire qui a atteint sa limite, alors on affiche un message disant qu'on a \textbf{probablement} rencontré un minimum local. À savoir qu'on ne l'a pas prouvé mais plutôt le tester selon les expériences.
-
-\begin{figure}[!ht]
+\begin{figure}[H!t]
 	\centering
 		\includegraphics[scale=0.4]{pics/ch3_localminimum.png}
-	\caption{Message affiché quand un minimum local apparaît}
+	\caption{Message affiché quand un minimum local apparaît (premier essai)}
 	\label{fig:ch3_localminimum}
 \end{figure}
 
+
+Mais très vite, nous trouvons que ce traitement ne sert à rien, car quand le point cible n'est pas atteignable, il peut aussi y avoir une variable articulaire qui atteint sa limite. Enfin on commence à chercher une alternative.
+
+
+\subsubsection{Deuxième essai pour traiter le problème de \textit{Minimum Local}}
+Comme on l'a dit avant, ce problème vient des limites qu'on a imposées aux variables articulaires et à l'initialisation aléatoire d'elles. Les limites sont imposées par les utilisateurs de notre programme, donc nous ne pouvons pas résoudre ce problème de ce niveau. Par contre, on peut essayer de traiter ce problème du niveau de l'initialisation. Une idée très naturelle est de relancer l'algorithme en initialisant à nouveau les variables quand on trouve le point cible n'est pas atteignable du premier lancement. Et si on ne peut toujours pas atteindre le point cible après 3(défini dans notre cas) lancements, alors on est plutôt sûr que ce point n'est vraiment pas atteignable.
+
+
+Mais c'est pas encore suffisant. Si le point n'est pas atteignable et on n'a pas rencontré des minimums locaux, alors il y a une autre caractéristique, c'est que pour tous les 3 lancements on a fait, les points finaux atteits par l'organe terminal doit être un même. Sinon, ça veut dire qu'on a rencontré un minimum local, pendant le lancement courant ou le lancement dernier. En ce cas, on fait encore 3 nouveaux lancements. Et si on n'arrive toujours pas trouver la solution après 10 fois, alors le programme s'arrête et un message sera affiché.
+
+
+Nous attachons ci-dessous, le code source concerné:
+\begin{lstlisting}[language=C++]
+int timesTry = 0, maxTryTimes = 3;
+Point lastPOIcurrent;
+//If we encounter local minimum situation, then
+//we will try aother 2 times with different initialisation
+for(timesTry = 0; timesTry<maxTryTimes; timesTry++)
+{
+		while(flag)
+    {
+        ...//Initialisation et l'algorithme principal
+        //Le programme va s'arrêter s'il trouve que le point cible est atteignable
+    }
+    
+    //Le point n'est pas atteint mais c'est peut être un minimum local
+    flag = true;
+    if(timesTry == 0)
+    {
+        lastPOIcurrent = POIcurrent;
+    }
+    else if(distance(POIcurrent, lastPOIcurrent) > BORNE_DIS)
+    {
+        //Le point final de cette fois est différente que la
+        //dernière fois, donc on a un minimum local cette fois ou
+        //la dernière fois. Donc on va lancer encore 3 fois le l'algo.
+        maxTryTimes = timesTry+3;
+        lastPOIcurrent = POIcurrent;
+    }
+    if(timesTry > 10)
+    {//Si'l n'arrive toujours pas à s'arrêter.
+        printf("On rencontre toujours \"Minimums locaux\", algo s'arrête. \n");
+        printf("Veuillez vérifier les limites imposées aux variables articulaires.\n");
+    }
+}
+\end{lstlisting}
+
+
 \subsection{Problème de vitesse de convergence}
-La vitesse de convergence est aussi un problème de cet algorithme, surtout quand le point cible est sur la frontière de la zone atteignable du bras manipulateur. En ce cas particulier, l'algorithme peut enfin trouver la solution, mais la vitesse de convergence devient très lente quand l'organe terminal approche du point cible.
+La vitesse de convergence est aussi un problème de cet algorithme, surtout quand le point cible est proche de la frontière de la zone atteignable du bras manipulateur. En ce cas particulier, l'algorithme peut enfin trouver la solution, mais la vitesse de convergence devient très lente quand l'organe terminal approche du point cible.
 
 

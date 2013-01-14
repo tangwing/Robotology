@@ -39,6 +39,6 @@ private:
     *falls into the "local minimum" situation. This situation 
     *often appears when we have limites for the articulars variables.
     */
-    static bool testLocalMinimum(Quadruplet* QUAconfig, int n);
+    static bool testPossibleLocalMinimum(Quadruplet* QUAconfig, int n);
 };
 

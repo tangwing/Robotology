@@ -58,10 +58,10 @@ Matrice & Matrice::operator*(Matrice & m2)
 
 void Matrice::MATprint(Matrice & m)
 {
-	cout<<endl<<setw(11)<<m[0][0]<<setw(11)<<m[0][1]<<setw(11)<<m[0][2]<<setw(11)<<m[0][3]<<endl;
-	cout<<setw(11)<<m[1][0]<<setw(11)<<m[1][1]<<setw(11)<<m[1][2]<<setw(11)<<m[1][3]<<endl;
-	cout<<setw(11)<<m[2][0]<<setw(11)<<m[2][1]<<setw(11)<<m[2][2]<<setw(11)<<m[2][3]<<endl;
-	cout<<setw(11)<<m[3][0]<<setw(11)<<m[3][1]<<setw(11)<<m[3][2]<<setw(11)<<m[3][3]<<endl;
+	cout<<endl<<setw(20)<<m[0][0]<<setw(20)<<m[0][1]<<setw(20)<<m[0][2]<<setw(20)<<m[0][3]<<endl;
+	cout<<setw(20)<<m[1][0]<<setw(20)<<m[1][1]<<setw(20)<<m[1][2]<<setw(20)<<m[1][3]<<endl;
+	cout<<setw(20)<<m[2][0]<<setw(20)<<m[2][1]<<setw(20)<<m[2][2]<<setw(20)<<m[2][3]<<endl;
+	cout<<setw(20)<<m[3][0]<<setw(20)<<m[3][1]<<setw(20)<<m[3][2]<<setw(20)<<m[3][3]<<endl;
 }
 
 void Matrice::MATprint()
