@@ -1,4 +1,4 @@
-﻿Build started 15/01/2013 00:36:33.
+﻿Build started 15/01/2013 19:11:47.
      1>Project "D:\Projects\Robotology\VSProjet\IAA\IAA.vcxproj" on node 2 (clean target(s)).
      1>_PrepareForClean:
          Deleting file "Debug\IAA.lastbuildstate".
@@ -6,4 +6,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.01
+Time Elapsed 00:00:00.02

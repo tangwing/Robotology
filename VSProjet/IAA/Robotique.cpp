@@ -97,6 +97,7 @@ bool Robotique::IAA(Quadruplet QUAconfig[], int n, Point POItarget)
     //we will try aother 2 times with different initialisation
     for(timesTry = 0; timesTry<maxTryTimes; timesTry++)
     {
+        srand((unsigned int)time(NULL));
 	    //Initialisation
         for(i=0; i<n; i++)
         {
